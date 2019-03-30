@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coder520.leave.dao.LeaveMapper">
+	<resultMap id="BaseResultMap"
+		type="com.coder520.leave.entity.Leave">
+		<id column="approve_id" jdbcType="VARCHAR" property="approveId" />
+		<result column="submit_date" jdbcType="VARCHAR" property="submitDate" />
+		<result column="apply_name" jdbcType="VARCHAR" property="applyName" />
+		<result column="apply_department" jdbcType="VARCHAR" property="applyDepartment" />
+		<result column="apply_type" jdbcType="VARCHAR" property="applyType" />
+		<result column="start_date" jdbcType="VARCHAR" property="startDate" />
+		<result column="end_date" jdbcType="VARCHAR" property="endDate" />
+		<result column="leave_time" jdbcType="VARCHAR" property="leaveTime" />
+		<result column="leave_reason" jdbcType="VARCHAR" property="leaveReason" />
+		<result column="approve_status" jdbcType="VARCHAR" property="approveStatus" />
+		<result column="approve_name" jdbcType="VARCHAR" property="approveName" />
+		<result column="send_name" jdbcType="VARCHAR" property="sendName" />
+		<result column="approve_process" jdbcType="VARCHAR" property="approveProcess" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		approve_id, submit_date, apply_name, apply_department, apply_type, start_date,end_date,
+		leave_time,leave_reason,approve_status,approve_name,send_name,approve_process
+	</sql>
+	
+	<insert id="batchInsert" parameterType="java.util.List">
+		insert into ask_leave (approve_id,submit_date,apply_name,apply_department,apply_type,start_date,
+		end_date,leave_time,leave_reason,approve_status,approve_name,send_name,approve_process)
+		values
+		<foreach collection="list" item="leave" index="index"
+			separator=",">
+			(#{leave.approveId},#{leave.submitDate},#{leave.applyName},
+			#{leave.applyDepartment},#{leave.applyType},#{leave.startDate},
+			#{leave.endDate},#{leave.leaveTime},#{leave.leaveReason},
+			#{leave.approveStatus},#{leave.approveName},#{leave.sendName},
+			#{leave.approveProcess})
+		</foreach>
+	</insert>
+	
+	<select id="countLeave" resultType="int">
+		select
+		count(0)
+		from ask_leave
+		<where>
+			<if test="applyName !=null and applyName!=''">
+				apply_name like "%"#{applyName}"%"
+			</if>
+		</where>
+	</select>
+	<select id="selectLeave" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from ask_leave
+		<where>
+			<if test="applyName !=null and applyName!=''">
+				apply_name like "%"#{applyName}"%"
+			</if>
+		</where>
+		LIMIT #{startRow} , #{pageSize}
+	</select>
+	
+	
+
+</mapper>

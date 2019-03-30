@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.coder520.user.dao.EmployeeMapper">
+	<resultMap id="BaseResultMap"
+		type="com.coder520.user.entity.Employee">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="name" jdbcType="VARCHAR"
+			property="name" />
+		<result column="position" jdbcType="VARCHAR"
+			property="position" />
+		<result column="department" jdbcType="VARCHAR" property="department" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, name, position, department
+	</sql>
+	<select id="countEmployee" resultType="int">
+		select
+		count(0)
+		from employee
+		<where>
+			<if test="name !=null and name!=''">
+				name like "%"#{name}"%"
+			</if>
+		</where>
+	</select>
+	<select id="selectByPrimaryKey" parameterType="java.lang.Long"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from employee
+		where id = #{id,jdbcType=BIGINT}
+	</select>
+	<select id="selectEmployee" resultType="Map">
+		select
+		id,name,position,department
+		from employee
+		<where>
+			<if test="userName !=null and userName!=''">
+				name like CONCAT('%',#{userName},'%')
+			</if>
+		</where>
+		LIMIT #{startRow} , #{pageSize}
+	</select>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+		delete from employee
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+	<insert id="insert"
+		parameterType="com.coder520.user.entity.User">
+		insert into user (id, username, password,
+		mobile, head_image
+		)
+		values (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		#{mobile,jdbcType=VARCHAR}, #{headImage,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertSelective"
+		parameterType="com.coder520.user.entity.Employee">
+		insert into employee
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- <if test="id != null"> id, </if> -->
+			<if test="name != null">
+				name,
+			</if>
+			<if test="position != null">
+				position,
+			</if>
+			<if test="department != null">
+				department,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<!-- <if test="id != null"> #{id,jdbcType=BIGINT}, </if> -->
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="position != null">
+				#{position,jdbcType=VARCHAR},
+			</if>
+			<if test="department != null">
+				#{department,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKey"
+		parameterType="com.coder520.user.entity.Employee">
+		update employee
+		set name = #{name,jdbcType=VARCHAR},
+		position= #{position,jdbcType=VARCHAR},
+		department = #{department,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+
+</mapper>

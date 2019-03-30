@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.coder520.attend.dao.AttendMapper">
+	<resultMap id="BaseResultMap"
+		type="com.coder520.attend.entity.Attend">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="user_id" property="userId" jdbcType="BIGINT" />
+		<result column="user_name" property="userName"
+			jdbcType="VARCHAR" />
+		<result column="attend_date" property="attendDate"
+			jdbcType="DATE" />
+		<result column="attend_week" property="attendWeek"
+			jdbcType="TINYINT" />
+		<result column="attend_morning" property="attendMorning"
+			jdbcType="TIME" />
+		<result column="attend_evening" property="attendEvening"
+			jdbcType="TIME" />
+		<result column="data_from" property="dataFrom"
+			jdbcType="VARCHAR" />
+			<result column="leave_status" property="leaveStatus"
+			jdbcType="CHAR" />
+			<result column="apply_type" property="applyType"
+			jdbcType="VARCHAR" />
+		<result column="absence" property="absence" jdbcType="INTEGER" />
+		<result column="attend_status" property="attendStatus"
+			jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, user_id, user_name, attend_date,attend_week, attend_morning, attend_evening,data_from,
+		leave_status,apply_type,
+		absence, attend_status
+	</sql>
+	<select id="selectByName" resultType="int">
+		select count(1) from attend 
+		<where>
+		<if test="userName !=null and userName!=''">
+				username =#{userName}
+	    </if> 
+	   </where>
+	</select>
+	<select id="selectName" resultType="String">
+		select distinct name from employee
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	<select id="countName" resultType="int">
+		select count(distinct name) from employee
+	</select>
+	<select id="selectAllDate" resultType="int">
+		select count(*) from attend where user_name=#{userName}
+	</select>
+	<select id="selectAbsence" resultType="int">
+		select count(distinct attend_date) from attend where user_name=#{userName} and absence=540
+	</select>
+	<select id="selectLate" resultType="int">
+		select count(distinct attend_date) from attend where user_name=#{userName} and attend_morning>'9:30:00'
+	</select>
+	<select id="selectcasualLeave" resultType="String">
+		select leave_time from ask_leave where approve_status='已通过'  and apply_name=#{userName} and apply_type='事假'
+	
+	</select>
+	<select id="selectsickLeave" resultType="String">
+		select leave_time from ask_leave where approve_status='已通过'  and apply_name=#{userName} and apply_type='病假'
+	
+	</select>
+	<select id="selectyearLeave" resultType="String">
+		select leave_time from ask_leave where approve_status='已通过'  and apply_name=#{userName} and apply_type='年假'
+	
+	</select>
+	<select id="selectrelaxLeave" resultType="String">
+		select leave_time from ask_leave where approve_status='已通过'  and apply_name=#{userName} and apply_type='调休假'
+	
+	</select>
+	
+	<select id="selectLeave" resultType="Map">
+		select start_date,apply_type
+		from ask_leave where apply_name=#{name}
+		and approve_status="已通过"
+	</select>
+	<select id="selectNameById" resultType="String">
+		select
+		distinct e.name
+		from employee e left join attend a
+		on a.user_id=e.id where e.id=#{userId}
+	</select>
+	<select id="selectDataFromById" resultType="String">
+		select
+		 data_from
+		from attend
+		where id=#{userId}
+	</select>
+	<select id="selectIdByName" parameterType="String"  resultType="Integer">
+		select
+		distinct e.id
+		from employee e left join attend a
+		on a.user_id=e.id where e.name=#{userName}
+	</select>
+	<select id="selectAttend" resultMap="BaseResultMap">
+		select 
+		<include refid="Base_Column_List" />
+		from attend
+	</select>
+	<select id="selectAttendDate" resultType="String">
+		select distinct
+		attend_date
+		from attend where attend_week!=0 order by attend_date
+	</select>
+	<select id="selectAttendLate" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from attend
+		where attend_date=#{attendDate} 
+		<!--前一天 date_sub(CURDATE(),interval 1 day) -->
+	</select>
+	<select id="selectTodaySignRecord" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from attend
+		where user_id =#{userId}
+		AND attend_date=#{attendDate}
+	</select>
+	<select id="countByCondition" resultType="int">
+		select
+		count(0)
+		from attend
+		where
+		<if test="startDate != null and endDate != null">
+			attend_date BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test="attendStatus != null and attendStatus!=''">
+			AND attend_status = #{attendStatus}
+		</if>
+	</select>
+	<select id="selectAttendPage" resultType="Map">
+		select
+		user_name,attend_date,attend_week,attend_morning,attend_evening,
+		data_from,leave_status,apply_type,
+		absence,attend_status
+		from attend
+		where 
+		attend_week!=0
+		<if test="startDate !=null and endDate !=null">
+			and attend_date BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test="attendStatus != null and attendStatus!=''">
+			AND attend_status = #{attendStatus}
+		</if>
+		<if test="userName != null">
+			AND user_name like CONCAT('%',#{userName},'%')
+		</if>
+		order by attend_date
+		LIMIT #{startRow} , #{pageSize}
+	</select>
+	
+	<select id="selectExportAttend" resultMap="BaseResultMap">
+		select
+		user_name,attend_date,attend_week,attend_morning,attend_evening,
+		data_from,leave_status,apply_type,
+		absence,attend_status
+		from attend
+		where 
+		attend_week!=0
+		<if test="startDate !=null and endDate !=null">
+			and attend_date BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test="attendStatus != null and attendStatus!=''">
+			AND attend_status = #{attendStatus}
+		</if>
+		<if test="userName != null">
+			AND user_name like CONCAT('%',#{userName},'%')
+		</if>
+		order by attend_date
+	</select>
+	
+	<select id="selectTodayAbsence" resultType="java.lang.Long">
+		select
+		e.id
+		from employee e
+		where e.id NOT IN(
+		select a.user_id
+		from attend a
+		where a.attend_date=#{attendDate}
+		)
+		<!--前一天 date_sub(CURDATE(),interval 1 day) -->
+	</select>
+
+	<!--List<Attend> selectTodayEveningAbsence(); -->
+	<select id="selectTodayEveningAbsence" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from attend a
+		where
+		a.attend_date=#{attendDate}
+		AND attend_morning IS NOT NULL
+		AND attend_evening IS NULL
+		<!--前一天 date_sub(CURDATE(),interval 1 day) -->
+	</select>
+	<select id="selectTodayMorningAbsence" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from attend a
+		where
+		a.attend_date=#{attendDate}
+		AND attend_evening IS NOT NULL
+		AND attend_morning IS NULL
+		<!--前一天 date_sub(CURDATE(),interval 1 day) -->
+	</select>
+	<insert id="batchInsert" parameterType="java.util.List">
+		insert into attend (user_id,user_name,attend_date,
+		attend_week, attend_morning, attend_evening,data_from, 
+		leave_status,apply_type,absence, attend_status)
+		values
+		<foreach collection="list" item="attend" index="index"
+			separator=",">
+			(#{attend.userId},#{attend.userName},
+			#{attend.attendDate},#{attend.attendWeek},#{attend.attendMorning},#{attend.attendEvening},
+			#{attend.dataFrom},#{attend.leaveStatus},#{attend.applyType},#{attend.absence},#{attend.attendStatus})
+		</foreach>
+	</insert>
+	<!-- <insert id="wechatInsert" parameterType="java.util.List">
+		insert into attend (user_id,user_name,attend_date,
+		attend_week, attend_morning, attend_evening,data_from,
+		absence, attend_status)
+		values
+		<foreach collection="list" item="attend" index="index"
+			separator=",">
+			(#{attend.userId},#{attend.userName},#{attend.attendDate},#{attend.attendWeek},
+			#{attend.attendMorning},#{attend.attendEvening},#{attend.dataFrom},
+			#{attend.leaveTime},#{attend.overTime},#{attend.restTime},
+			#{attend.absence},#{attend.attendStatus})
+		</foreach>
+	</insert> -->
+	
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Long">
+		select
+		<include refid="Base_Column_List" />
+		from attend
+		where id = #{id,jdbcType=BIGINT}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+		delete from attend
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+	<insert id="insert"
+		parameterType="com.coder520.attend.entity.Attend">
+		insert into attend (id, user_id, attend_date,
+		attend_week, attend_morning, attend_evening,data_from,
+		absence, attend_status)
+		values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT},
+		#{attendDate,jdbcType=DATE},
+		#{attendWeek,jdbcType=TINYINT}, #{attendMorning,jdbcType=TIME}, #{attendEvening,jdbcType=TIME},
+		#{absence,jdbcType=INTEGER}, #{attendStatus,jdbcType=VARCHAR})
+	</insert>
+	<insert id="insertSelective"
+		parameterType="com.coder520.attend.entity.Attend">
+		insert into attend
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="userId != null">
+				user_id,
+			</if>
+			<if test="userName != null">
+				user_name,
+			</if>
+			<if test="attendDate != null">
+				attend_date,
+			</if>
+			<if test="attendWeek != null">
+				attend_week,
+			</if>
+			<if test="attendMorning != null">
+				attend_morning,
+			</if>
+			<if test="attendEvening != null">
+				attend_evening,
+			</if>
+			<if test="dataFrom != null">
+				data_from,
+			</if>
+			<if test="leaveStatus != null">
+				leave_status,
+			</if>
+			<if test="applyType != null">
+				apply_type,
+			</if>
+			<if test="absence != null">
+				absence,
+			</if>
+			<if test="attendStatus != null and attendStatus!=''">
+				attend_status,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="userId != null">
+				#{userId,jdbcType=BIGINT},
+			</if>
+			<if test="userName != null">
+				#{userName,jdbcType=VARCHAR},
+			</if>
+			<if test="attendDate != null">
+				#{attendDate,jdbcType=DATE},
+			</if>
+			<if test="attendWeek != null">
+				#{attendWeek,jdbcType=TINYINT},
+			</if>
+			<if test="attendMorning != null">
+				#{attendMorning,jdbcType=TIME},
+			</if>
+			<if test="attendEvening != null">
+				#{attendEvening,jdbcType=TIME},
+			</if>
+			<if test="dataFrom != null">
+				#{dataFrom,jdbcType=VARCHAR},
+			</if>
+			<if test="leaveStatus != null">
+				#{leaveStatus,jdbcType=VARCHAR},
+			</if>
+			<if test="applyType != null">
+				#{applyType,jdbcType=VARCHAR},
+			</if>
+			<if test="absence != null">
+				#{absence,jdbcType=INTEGER},
+			</if>
+			<if test="attendStatus != null and attendStatus!=''">
+				#{attendStatus,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective"
+		parameterType="com.coder520.attend.entity.Attend">
+		update attend
+		<set>
+			<if test="userId != null">
+				user_id = #{userId,jdbcType=BIGINT},
+			</if>
+			<if test="userName != null">
+				user_name = #{userName,jdbcType=VARCHAR},
+			</if>
+			<if test="attendDate != null">
+				attend_date = #{attendDate,jdbcType=DATE},
+			</if>
+			<if test="attendWeek != null">
+				attend_week = #{attendWeek,jdbcType=TINYINT},
+			</if>
+			<if test="attendMorning != null">
+				attend_morning = #{attendMorning,jdbcType=TIME},
+			</if>
+			<if test="attendEvening != null">
+				attend_evening = #{attendEvening,jdbcType=TIME},
+			</if>
+			<if test="dataFrom != null">
+				data_from=#{dataFrom,jdbcType=VARCHAR},
+			</if>
+			<if test="leaveStatus != null">
+				leave_status=#{leaveStatus,jdbcType=CHAR},
+			</if>
+			<if test="applyType != null">
+				apply_type=#{applyType,jdbcType=VARCHAR},
+			</if>
+			<if test="absence != null">
+				absence = #{absence,jdbcType=INTEGER},
+			</if>
+			<if test="attendStatus != null and attendStatus!=''">
+				attend_status = #{attendStatus,jdbcType=VARCHAR}
+			</if>
+		</set>
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	<update id="updateByPrimaryKey"
+		parameterType="com.coder520.attend.entity.Attend">
+		update attend
+		set user_id = #{userId,jdbcType=BIGINT},
+		attend_date = #{attendDate,jdbcType=DATE},
+		attend_week = #{attendWeek,jdbcType=TINYINT},
+		attend_morning = #{attendMorning,jdbcType=TIME},
+		attend_evening = #{attendEvening,jdbcType=TIME},
+		data_from=#{dataFrom,jdbcType=VARCHAR},
+		absence = #{absence,jdbcType=INTEGER},
+		attend_status = #{attendStatus,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+</mapper>
