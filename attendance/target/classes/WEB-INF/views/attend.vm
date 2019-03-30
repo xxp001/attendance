@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.6 -->
+    <!-- Bootstrap 3.3.6 -->
+    <link rel="stylesheet" href="static/bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome
+    <link rel="stylesheet" href="static/css/font-awesome.min.css"> -->
+    <link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="static/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="static/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="static/dist/css/skins/_all-skins.min.css">
+    <link rel="stylesheet" href="static/plugins/datatables/dataTables.bootstrap.css">
+    <link rel="stylesheet" href="static/plugins/daterangepicker/daterangepicker.css">
+    <link rel="stylesheet" href="static/plugins/datepicker/datepicker3.css">
+    <link rel="stylesheet" href="static/css/xxp.css">
+    <style type="text/css">	
+	.history{
+	    width:55px;
+	    height:30px;
+	}
+	.name{
+	    width:120px;
+	    height:34px;
+	}
+	 #view{
+		   width:230px;
+		   height:44px; 
+			  }
+	.middle{
+		   text-align:center;
+			} 
+	body{
+		  background:#C7EDCC;
+		  color:black;
+	}
+	.attend{
+		background:#C7EDCC;
+		color:black;
+	}
+	.export{
+	    background:#009688
+	}
+ 	.bootstrap-table .table thead>tr,.bootstrap-table .table tbody>tr {
+			    background:#AEDD81;
+  				color:black;
+			}
+	</style>
+</head>
+<body >
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="attend">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>
+               每日考勤数据
+            </h1>
+        </section>
+
+        <!-- Main content -->
+        <section class="content attend">
+            <div class="box attend">
+                <div class="box-search">
+                    <form onSubmit="return false;"  id="attendQueryForm">
+                        <div class="form-inline attend">
+                            <label>日期范围:</label>
+                            <div class="input-group">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                                <input type="text" class="form-control pull-left" id="rangeDate" name="rangeDate">
+                            </div>
+                            <label>状态</label>
+                            <select class="form-control" name="attendStatus" id="attendStatus">
+                                <option value="">全部</option>
+                                <option value="1">正常</option>
+                                <option value="2">异常</option>
+                            </select>
+                            <label>姓名</label>
+                            <input type="text" id="username" class="name" placeholder="请输入姓名">
+                            <button type="submit" class="btn btn-primary" onclick="attendQuery()">查询</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.box-header -->
+                <!-- /.box-header -->
+                <div class="box-body attend">
+                    <table class="table" id="attend_grid" class="table table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>姓名</th>
+                            <th>考勤日期</th>
+                            <th>星期</th>
+                            <th>早打卡</th>
+                            <th>晚打卡</th>
+                            <th>数据来源</th>
+                            <th data-class="middle">是否请假</th>
+                            <th data-class="middle">请假类型</th>
+                            <th data-class="middle">缺勤时长</th>
+                            <th data-class="middle">考勤状态</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div id="grid_pager"></div>
+                <!--<button type="button" id="download" style="margin-left:50px" id="btn_download" class="btn btn-primary" onClick ="$('#attend_grid').tableExport({ type: 'excel', escape: 'false' })">数据导出</button>-->
+                <button type="button" id="export" style="margin-left:50px" class="btn btn-primary export" >数据导出</button>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED JS SCRIPTS -->
+
+<!-- jQuery 2.2.3 -->
+<script src="static/jquery/jquery-2.2.3.min.js"></script>
+<!-- Bootstrap 3.3.6 -->
+<script src="static/bootstrap/js/bootstrap.min.js"></script>
+<!-- AdminLTE App -->
+<script src="static/dist/js/app.min.js"></script>
+<script src="static/js/user.js"></script>
+<script src="static/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="static/plugins/datatables/dataTables.bootstrap.min.js"></script>
+<script src="static/plugins/datepicker/bootstrap-datepicker.js"></script>
+<script src="static/plugins/daterangepicker/moment.min.js"></script>
+<script src="static/plugins/daterangepicker/daterangepicker.js"></script>
+<script src="static/plugins/datepicker/locales/bootstrap-datepicker.zh-CN.js"></script>
+<script src="static/js/tableExport.js"></script>
+<script src="static/js/jquery.base64.js"></script>
+<script>
+		
+	
+    //Date range as a button
+    $('#rangeDate').daterangepicker(
+            {
+                locale: {
+                    applyLabel: '确定',
+                    cancelLabel: '取消',
+                    fromLabel: '起始时间',
+                    toLabel: '结束时间',
+                    customRangeLabel: '自定义',
+                    daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+                    monthNames: ['一月', '二月', '三月', '四月', '五月', '六月',
+                        '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                    firstDay: 1,
+                    format:"YYYY-MM-DD",
+                    separator:"/",
+                },
+
+                ranges: {
+                    '今天': [moment()],
+                    '昨天': [moment().subtract(1, 'days'),moment().subtract(1, 'days')],
+                    '最近七天': [moment().subtract(6, 'days'), moment()],
+                    '最近30天': [moment().subtract(29, 'days'), moment()],
+                    '本月': [moment().startOf('month'), moment().endOf('month')],
+                    '上月': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                //moment().startOf('year'),
+                 startDate:moment().subtract(2, 'year').startOf('month') ,       
+                 // moment().endOf('year')
+                 endDate: moment().endOf('year') 
+            }
+    );
+
+    Date.prototype.format = function (fmt) {
+        var o = {
+            "M+": this.getMonth() + 1,                 //月份
+            "d+": this.getDate(),                    //日
+            "h+": this.getHours(),                   //小时
+            "m+": this.getMinutes(),                 //分
+            "s+": this.getSeconds(),                 //秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+            "S": this.getMilliseconds()             //毫秒
+        };
+        if (/(y+)/.test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        }
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(fmt)) {
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            }
+        }
+        return fmt;
+    }
+
+    function formToJson(form) {
+        var result = {};
+        var fieldArray = $('#' + form).serializeArray();
+        for (var i = 0; i < fieldArray.length; i++) {
+            var field = fieldArray[i];
+            if (field.name in result) {
+                result[field.name] += ',' + field.value;
+            } else {
+                result[field.name] = field.value;
+            }
+        }
+        return result;
+    }
+
+    //Date picker
+    $('#attendDate').datepicker({
+        autoclose: true,
+        language: 'zh-CN',
+        todayHighlight: true
+    });
+
+    var week_CN = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+
+    var table;
+
+    function attendQuery() {
+        table.ajax.reload();
+    }
+    
+    
+    
+    $("#export").click(function () {
+                        //封装请求参数
+                        var rangeDate=$("#rangeDate").val();
+                        var time=rangeDate.split("/");
+                        var startTime=time[0];
+                        var endTime=time[1];
+                        var attendStatus=$("#attendStatus").val();
+                        var userName=$("#username").val();
+                        console.log(rangeDate);
+                        console.log(attendStatus);
+                        console.log(userName);
+                     if(confirm( '确认把该搜索结果导出Excel表格 ？')) {
+					location.href="export?startTime="+startTime+"&endTime="+endTime+"&attendStatus="+attendStatus+"&userName="+userName;
+
+			}
+			
+  		 })
+    
+    
+    $(function () {
+        //提示信息
+        $.fn.dataTable.ext.errMode = 'none';
+
+        var lang = {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "每页 _MENU_ 项",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "当前显示第 _START_ 至 _END_ 项，共 _TOTAL_ 项。",
+            "sInfoEmpty": "当前显示第 0 至 0 项，共 0 项",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页",
+                "sJump": "跳转"
+            },
+            "oAria": {
+                "sSortAscending": ": 以升序排列此列",
+                "sSortDescending": ": 以降序排列此列"
+            }
+        };
+
+        //初始化表格
+        table = $("#attend_grid")
+                .on('error.dt', function (e, settings, techNote, message) {
+                    console.warn(message)
+                }).dataTable({
+                    language: lang, //提示信息
+                    autoWidth: false, //禁用自动调整列宽
+                    stripeClasses: ["odd", "even"], //为奇偶行加上样式，兼容不支持CSS伪类的场合
+                    processing: true, //隐藏加载提示,自行处理
+                    serverSide: true, //启用服务器端分页
+                    searching: false, //禁用原生搜索
+                    orderMulti: false, //启用多列排序
+                    order: [], //取消默认排序查询,否则复选框一列会出现小箭头
+                    renderer: "bootstrap", //渲染样式：Bootstrap和jquery-ui
+                    pagingType: "simple_numbers", //分页样式：simple,simple_numbers,full,full_numbers
+                    columnDefs: [{
+                        "targets": 'nosort', //列的样式名
+                        "orderable": false //包含上样式名‘nosort'的禁止排序
+                    }],
+                    ajax: function (data, callback, settings) {
+                        //封装请求参数
+                        var param = formToJson("attendQueryForm");
+                        var username=$("#username").val();
+                        param.pageSize = data.length;//页面显示记录条数，在页面显示每页显示多少项的时候
+                        param.start = data.start;//开始的记录序号
+                        param.currentPage = (data.start / data.length) + 1;//当前页码
+                        param.userName=username;
+                        console.log(param);
+                        //ajax请求数据
+                        $.ajax({
+                            type: "GET",
+                            url: "attendList",
+                            cache: false, //禁用缓存
+                            data: param, //传入组装的参数
+                            dataType: "json",
+                            success: function (result) {
+                               
+                                //setTimeout仅为测试延迟效果
+                                setTimeout(function () {
+                                    //封装返回数据
+                                    var returnData = {};
+                                    returnData.draw = data.startRow;//这里直接自行返回了draw计数器,应该由后台返回
+                                    returnData.recordsTotal = result.totalRows;//返回数据全部记录
+                                    returnData.recordsFiltered = result.totalRows;//后台不实现过滤功能，每次查询均视作全部结果
+                                    returnData.data = result.items;//返回的数据列表
+
+                                    //此时的数据需确保正确无误，异常判断应在执行此回调前自行处理完毕
+                                    callback(returnData);
+                                }, 200);
+                            }
+                        });
+                    },
+                    //列表表头字段
+                    columns: [
+                        {   "data": "seq",
+                            render: function (data, type, full,row_col) {
+                                return row_col.row;
+                            }
+                        },
+                        {"data": "user_name" , "visible" : true },
+                        {
+                            "data": "attend_date",
+                            render: function (data, type, full) {
+                                return new Date(data).format("yyyy-MM-dd");
+                            }
+                        },
+                        {
+                            "data": "attend_week",
+                            render: function (data, type, full) {
+                                return week_CN[data - 1];
+                            }
+                        },
+                        {
+                            "data": "attend_morning",
+                            render: function (data, type, full) {
+                                if(data!=null){
+                                    return new Date(data).format("hh:mm:ss");
+                                }else{
+                                    return "";
+                                }
+                            }
+                        },
+                        {
+                            "data": "attend_evening",
+                            render: function (data, type, full) {
+                                if(data!=null){
+                                    return new Date(data).format("hh:mm:ss");
+                                }else{
+                                    return "";
+                                }
+                            }
+                        },
+                        {
+                            "data": "data_from"
+                        },
+                        {
+                            "data": "leave_status"
+                        },
+                        {
+                            "data": "apply_type"
+                        },
+                        {
+                            "data": "absence"
+                        },
+                        {
+                            "data": "attend_status",
+                            render: function (data, type, full) {
+                                if(data==1){
+                                    return "<span style='color: green'>正常</span>";
+                                }else{
+                                    return "<span style='color: red'>异常</span>";
+                                }
+                            }
+                        }
+                    ]
+                })
+            .api();
+
+
+        //此处需调用api()方法,否则返回的是JQuery对象而不是DataTables的API对象
+    });
+
+</script>
+</body>
+</html>
